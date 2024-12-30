@@ -106,6 +106,11 @@ public:
       residuals[0] = ud - T(pd.u);
       residuals[1] = vd - T(pd.v);
     } else {
+      // 设3d投影点与匹配的2d点的连线记为向量 p，即(ud - pd.u, vd - pd.v)
+      // (n * n.transpose) * p 得到的是 p 在 n 上的投影向量（前提n是单位向量），
+      // p - (n * n.transpose) * p 就是 (ud， vd) 向 2d 点所在直线做垂线时的垂线向量，
+      // 也就是 (I - n * n.transpose) * p
+      // 其结果的模就是 3d 投影点到 2d 点所在直线的距离
       residuals[0] = ud - T(pd.u);
       residuals[1] = vd - T(pd.v);
       Eigen::Matrix<T, 2, 2> I =
@@ -258,6 +263,8 @@ int main(int argc, char **argv) {
   cv::waitKey(1000);
 
   if (use_rough_calib) {
+    // 固定分辨率遍历角度（从三轴欧拉角遍历），计算匹配对数目，更新最大匹配对比例对应的外参
+    // 这里仅估计了旋转的初值，平移初值没估计
     roughCalib(calibra, calib_params, DEG2RAD(0.1), 50);
   }
   cv::Mat test_img = calibra.getProjectionImg(calib_params);

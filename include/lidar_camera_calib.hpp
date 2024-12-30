@@ -3,6 +3,7 @@
 
 #include "CustomMsg.h"
 #include "common.h"
+#include <Eigen/Eigen>
 #include <Eigen/Core>
 #include <cv_bridge/cv_bridge.h>
 #include <fstream>
@@ -833,6 +834,8 @@ void Calibration::calcLine(
         float point_dis_threshold = 0.00;
         if (theta > theta_max_ && theta < theta_min_) {
           // for (int i = 0; i < 6; i++) {
+          // 分别计算2个平面与体素的6个面的交点，即2个平面+某一个体素面，三面求交点
+          // 即使存在2个平面与体素面重合也没问题，因为重合时就是无交点，一定会有另外2个体素面计算出交点
           if (plane_list[plane_index1].cloud.size() > 0 &&
               plane_list[plane_index2].cloud.size() > 0) {
             float matrix[4][5];
@@ -1183,6 +1186,7 @@ void Calibration::buildVPnp(
       pnp.direction_lidar = lidar_direction_list[i];
       pnp.number = lidar_2d_number[i];
       float theta = pnp.direction.dot(pnp.direction_lidar);
+      // 直线的方向在 30 度的夹角内，则认为是匹配的一组直线
       if (theta > direction_theta_min_ || theta < direction_theta_max_) {
         pnp_list.push_back(pnp);
       }
